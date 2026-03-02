@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>实时语音对话测试</title>
+        <link rel="stylesheet" href="/css/styles.css">
+
+</head>
+<body>
+    <div class="container">
+        <h1>🎙️ 实时语音对话测试</h1>
+
+        <div id="status" class="status disconnected">
+            未连接
+        </div>
+
+        <div class="controls">
+            <button id="connectBtn" class="btn-connect">连接</button>
+            <button id="disconnectBtn" class="btn-disconnect" disabled>断开</button>
+        </div>
+
+        <div id="chatArea" class="chat-area"></div>
+
+        <div class="input-area">
+            <input
+                type="text"
+                id="messageInput"
+                placeholder="输入消息..."
+                disabled
+            />
+            <button id="sendBtn" class="btn-send" disabled>发送</button>
+        </div>
+    </div>
+
+    <script type="module" src="/js/app.js"></script>
+</body>
+</html>
