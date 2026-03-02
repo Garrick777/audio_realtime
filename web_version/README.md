@@ -1,74 +1,86 @@
-# Web 版本使用说明
+# Web 实时语音项目环境说明
 
-## 项目结构
+## 目录结构
 
 ```
 web_version/
 ├── backend/
-│   └── server.py       # 后端 WebSocket 服务器
-└── frontend/
-    └── index.html      # 前端页面
+│   ├── config.py
+│   └── server.py
+├── config/
+│   ├── dev.env.example
+│   ├── test.env.example
+│   └── prod.env.example
+├── frontend/
+│   ├── css/
+│   ├── js/
+│   └── index.html
+├── scripts/
+│   ├── setup.ps1
+│   ├── run-dev.ps1
+│   └── verify-env.ps1
+└── tests/
+    ├── unit/
+    ├── integration/
+    └── e2e/
 ```
 
-## 使用步骤
+## 环境准备
 
-### 1. 安装依赖
+1. 复制环境变量模板：
 
 ```bash
-pip install websockets
+copy .env.example .env
 ```
 
-### 2. 启动后端服务器
+2. 在 `.env` 中设置 `API_KEY`，其余参数可按需覆盖：
+
+```env
+API_KEY=your-api-key
+APP_ENV=dev
+HOST=localhost
+PORT=8080
+MODEL=gpt-4o-realtime-preview
+BASE_URL=ws://vectorengine.ai/v1/realtime
+LOG_LEVEL=INFO
+```
+
+3. 如需分环境配置，可基于以下模板创建对应文件：
+- `web_version/config/dev.env`
+- `web_version/config/test.env`
+- `web_version/config/prod.env`
+
+后端会优先加载根目录 `.env`，再按 `APP_ENV` 加载对应环境文件并覆盖。
+
+## 安装依赖
+
+在仓库根目录执行：
 
 ```bash
-cd web_version/backend
-python server.py
+pip install -r requirements.txt
 ```
 
-应该看到：
-```
-============================================================
-  实时语音对话 WebSocket 服务器
-============================================================
+Windows PowerShell 可直接运行：
 
-服务器地址: ws://localhost:8080/ws
-Realtime API: ws://vectorengine.ai/v1/realtime?model=gpt-4o-realtime-preview
-模型: gpt-4o-realtime-preview (OpenAI Realtime API)
-
-等待客户端连接...
+```powershell
+.\web_version\scripts\setup.ps1
 ```
 
-### 3. 打开前端页面
+## 启动开发环境
 
-在浏览器中访问：
-```
-http://localhost:8080
-```
-
-### 4. 开始使用
-
-1. 点击"连接"按钮
-2. 等待状态变为"Realtime API 已连接"
-3. 在输入框输入消息
-4. 点击"发送"或按回车
-
-## 架构说明
-
-```
-前端浏览器 (index.html)
-    ↕ WebSocket
-后端服务器 (server.py)
-    ↕ WebSocket
-OpenAI Realtime API (通过 vectorengine.ai)
+```powershell
+.\web_version\scripts\run-dev.ps1
 ```
 
-**说明：**
-- 使用的是 OpenAI Realtime API 格式
-- 模型: gpt-4o-realtime-preview
-- 通过 vectorengine.ai 提供的兼容端点访问
+启动后访问：
+- HTTP: `http://localhost:8080`
+- WS: `ws://localhost:8080/ws`
+- 健康检查: `http://localhost:8080/health`
 
-## 注意事项
+## 环境验证
 
-1. 确保 `.env` 文件中已配置 `API_KEY`
-2. 后端服务器必须先启动
-3. 前端连接地址是 ws://localhost:8080/ws
+```powershell
+.\web_version\scripts\verify-env.ps1
+```
+
+该脚本会检查依赖导入并编译后端源码。

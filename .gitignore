@@ -1,5 +1,6 @@
 ﻿# 环境变量文件
 .env
+web_version/config/*.env
 
 # Python缓存
 __pycache__/
@@ -15,6 +16,14 @@ __pycache__/
 venv/
 env/
 ENV/
+.venv/
+
+# Python工具缓存
+.pytest_cache/
+.mypy_cache/
+
+# 运行日志
+*.log
 
 # IDE
 .vscode/

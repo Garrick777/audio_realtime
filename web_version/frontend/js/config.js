@@ -1,4 +1,4 @@
-export const STATUS = Object.freeze({
+﻿export const STATUS = Object.freeze({
   DISCONNECTED: "disconnected",
   CONNECTING: "connecting",
   CONNECTED: "connected",
@@ -15,6 +15,41 @@ export const MESSAGE_TYPES = Object.freeze({
   RESPONSE_CREATE: "response.create",
 });
 
+export const UI_MODE = Object.freeze({
+  TEXT: "text",
+  VOICE: "voice",
+});
+
+export const AUDIO_CONFIG = Object.freeze({
+  sampleRate: 24000,
+  channels: 1,
+  chunkSize: 2400,
+  workletPath: "/js/audio-worklet-processor.js",
+});
+
+export const PLAYER_CONFIG = Object.freeze({
+  minBufferChunks: 2,
+  maxQueueSize: 50,
+});
+
+export const REALTIME_CONFIG = Object.freeze({
+  modalities: Object.freeze(["audio", "text"]),
+  voice: "alloy",
+  inputAudioFormat: "pcm16",
+  outputAudioFormat: "pcm16",
+  inputAudioTranscription: Object.freeze({
+    model: "whisper-1",
+  }),
+  turnDetection: Object.freeze({
+    type: "server_vad",
+    threshold: 0.5,
+    prefixPaddingMs: 300,
+    silenceDurationMs: 500,
+    createResponse: true,
+    interruptResponse: true,
+  }),
+});
+
 export const CONFIG = Object.freeze({
   WS_URL: "ws://localhost:8080/ws",
   RECONNECT: Object.freeze({
@@ -29,4 +64,8 @@ export const CONFIG = Object.freeze({
     AUTO_SCROLL: true,
     SHOW_TIMESTAMPS: true,
   }),
+  AUDIO_CONFIG,
+  PLAYER_CONFIG,
+  REALTIME_CONFIG,
+  UI_MODE,
 });
