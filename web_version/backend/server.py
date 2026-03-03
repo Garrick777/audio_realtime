@@ -3,11 +3,15 @@
 """
 import asyncio
 import json
+import os
 from pathlib import Path
 
 from aiohttp import WSMsgType, web
+from dotenv import load_dotenv
 import websockets
-from config import settings
+
+# 加载环境变量
+load_dotenv()
 
 
 class RealtimeServer:
@@ -19,12 +23,12 @@ class RealtimeServer:
         self.realtime_connections = {}
 
         # 配置
-        self.api_key = settings.api_key
+        self.api_key = os.getenv("API_KEY")
         if not self.api_key:
             raise ValueError("请在.env文件中设置API_KEY")
 
-        self.model = settings.model
-        self.base_url = settings.base_url
+        self.model = os.getenv("MODEL", "gpt-4o-realtime-preview")
+        self.base_url = os.getenv("BASE_URL", "ws://vectorengine.ai/v1/realtime")
         self.realtime_url = f"{self.base_url}?model={self.model}"
         self.frontend_dir = (Path(__file__).resolve().parent / ".." / "frontend").resolve()
         self.app = self._create_app()
@@ -231,7 +235,7 @@ def main():
     """主函数。"""
     try:
         server = RealtimeServer()
-        asyncio.run(server.start(host=settings.host, port=settings.port))
+        asyncio.run(server.start())
     except ValueError as e:
         print(f"\n❌ 配置错误: {e}")
     except KeyboardInterrupt:

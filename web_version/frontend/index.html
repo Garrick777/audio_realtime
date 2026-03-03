@@ -1,14 +1,15 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="zh-CN">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>实时语音对话测试</title>
-    <link rel="stylesheet" href="/css/styles.css">
+        <link rel="stylesheet" href="/css/styles.css">
+
 </head>
 <body>
     <div class="container">
-        <h1>实时语音对话测试</h1>
+        <h1>🎙️ 实时语音对话测试</h1>
 
         <div id="status" class="status disconnected">
             未连接
@@ -19,40 +20,16 @@
             <button id="disconnectBtn" class="btn-disconnect" disabled>断开</button>
         </div>
 
-        <div class="mode-switcher">
-            <button id="textModeBtn" class="mode-btn active">文本模式</button>
-            <button id="voiceModeBtn" class="mode-btn">语音模式</button>
-        </div>
+        <div id="chatArea" class="chat-area"></div>
 
-        <div id="textMode" class="text-mode">
-            <div id="chatArea" class="chat-area"></div>
-
-            <div class="input-area">
-                <input
-                    type="text"
-                    id="messageInput"
-                    placeholder="输入消息..."
-                    disabled
-                />
-                <button id="sendBtn" class="btn-send" disabled>发送</button>
-            </div>
-        </div>
-
-        <div id="voiceMode" class="voice-mode" style="display:none;">
-            <div class="voice-status">
-                <span id="voiceStatus">准备开始通话</span>
-            </div>
-
-            <div class="volume-indicator-container">
-                <div id="volumeBar" class="volume-bar"></div>
-            </div>
-
-            <button id="callToggleBtn" class="call-button" aria-pressed="false">
-                <span class="call-icon">📞</span>
-                <span id="callToggleText" class="call-text">开始通话</span>
-            </button>
-
-            <div id="voiceHint" class="voice-hint">点击开始后将自动持续监听，无需按住按钮。</div>
+        <div class="input-area">
+            <input
+                type="text"
+                id="messageInput"
+                placeholder="输入消息..."
+                disabled
+            />
+            <button id="sendBtn" class="btn-send" disabled>发送</button>
         </div>
     </div>
 
