@@ -21,10 +21,6 @@ class AudioProcessor extends AudioWorkletProcessor {
     }
 
     const mono = this._mixToMono(input);
-    if (mono.length === 0) {
-      return true;
-    }
-
     const rms = this._computeRms(mono);
     this.port.postMessage({
       type: "audio.volume",
@@ -54,7 +50,7 @@ class AudioProcessor extends AudioWorkletProcessor {
     for (let i = 0; i < frames; i += 1) {
       let sum = 0;
       for (let ch = 0; ch < channels.length; ch += 1) {
-        sum += channels[ch][i] || 0;
+        sum += channels[ch][i];
       }
       mono[i] = sum / channels.length;
     }
@@ -102,8 +98,8 @@ class AudioProcessor extends AudioWorkletProcessor {
 
     for (let i = 0; i < float32.length; i += 1) {
       const s = Math.max(-1, Math.min(1, float32[i]));
-      const v = Math.max(-32768, Math.min(32767, s * 32768));
-      pcm16[i] = v;
+      // 正值用 32767，负值用 32768，避免溢出
+      pcm16[i] = s < 0 ? Math.max(-32768, s * 32768) : Math.min(32767, s * 32767);
     }
 
     return pcm16;

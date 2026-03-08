@@ -30,19 +30,11 @@ export class AudioRecorder {
     }
 
     try {
-      try {
-        this.audioContext = new AudioContext({
-          latencyHint: "interactive",
-        });
-      } catch (error) {
-        throw this._createError("audio_context_create_failed", "Failed to create AudioContext", error);
-      }
+      this.audioContext = new AudioContext({
+        latencyHint: "interactive",
+      });
 
-      try {
-        await this.audioContext.audioWorklet.addModule(this.config.workletUrl);
-      } catch (error) {
-        throw this._createError("worklet_load_failed", "Failed to load AudioWorklet module", error);
-      }
+      await this.audioContext.audioWorklet.addModule(this.config.workletUrl);
 
       this.workletNode = new AudioWorkletNode(this.audioContext, "audio-processor");
       this.workletNode.port.onmessage = (event) => {
@@ -105,7 +97,6 @@ export class AudioRecorder {
       this.sourceNode = this.audioContext.createMediaStreamSource(this.stream);
 
       this.sourceNode.connect(this.workletNode);
-      this.workletNode.connect(this.audioContext.destination);
       this.isRecording = true;
     } catch (error) {
       this._emitError(error);
@@ -142,28 +133,16 @@ export class AudioRecorder {
   }
 
   onAudioData(callback) {
-    if (typeof callback !== "function") {
-      return () => {};
-    }
-
     this._audioDataCallbacks.add(callback);
     return () => this._audioDataCallbacks.delete(callback);
   }
 
   onVolumeChange(callback) {
-    if (typeof callback !== "function") {
-      return () => {};
-    }
-
     this._volumeCallbacks.add(callback);
     return () => this._volumeCallbacks.delete(callback);
   }
 
   onError(callback) {
-    if (typeof callback !== "function") {
-      return () => {};
-    }
-
     this._errorCallbacks.add(callback);
     return () => this._errorCallbacks.delete(callback);
   }
@@ -198,17 +177,7 @@ export class AudioRecorder {
   }
 
   _normalizeVolume(value) {
-    const n = Number(value);
-    if (!Number.isFinite(n)) {
-      return 0;
-    }
-    if (n <= 0) {
-      return 0;
-    }
-    if (n >= 1) {
-      return 1;
-    }
-    return n;
+    return Math.max(0, Math.min(1, value));
   }
 
   _smoothVolume(value) {

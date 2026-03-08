@@ -139,7 +139,6 @@
   }
 
   .mode-btn {
-    min-width: 120px;
     padding: 10px 14px;
   }
 
@@ -151,8 +150,6 @@
 
 @media (max-width: 480px) {
   .call-button {
-    min-width: 120px;
-    min-height: 120px;
     width: 120px;
     height: 120px;
   }

@@ -1,10 +1,10 @@
 const DEFAULT_CONFIG = Object.freeze({
   sampleRate: 24000,
   channels: 1,
-  minStartChunks: 2,
+  minStartChunks: 1,        // 减少到 1 个 chunk，降低启动延迟
   maxQueueLength: 200,
-  startDelaySeconds: 0.02,
-  scheduleAheadSeconds: 1.0,
+  startDelaySeconds: 0.01,  // 减少到 10ms，降低延迟
+  scheduleAheadSeconds: 0.5, // 减少预调度时间
 });
 
 export class AudioPlayer {
@@ -61,19 +61,19 @@ export class AudioPlayer {
 
   stop() {
     this.isPlaying = false;
+    this.scheduledTime = 0;
 
-    for (const source of this.activeSources) {
-      try {
-        source.stop();
-      } catch (_) {
-        // Ignore stop errors from already-ended sources.
-      }
+    // 先清理回调，防止竞态
+    const sources = Array.from(this.activeSources);
+    this.activeSources.clear();
+
+    for (const source of sources) {
+      source.onended = null;
+      source.stop();
       source.disconnect();
     }
 
-    this.activeSources.clear();
     this.queue = [];
-    this.scheduledTime = 0;
 
     if (this.hasStartedPlayback) {
       this.hasStartedPlayback = false;
@@ -86,17 +86,11 @@ export class AudioPlayer {
   }
 
   onPlayStart(callback) {
-    if (typeof callback !== "function") {
-      return () => {};
-    }
     this._playStartCallbacks.add(callback);
     return () => this._playStartCallbacks.delete(callback);
   }
 
   onPlayEnd(callback) {
-    if (typeof callback !== "function") {
-      return () => {};
-    }
     this._playEndCallbacks.add(callback);
     return () => this._playEndCallbacks.delete(callback);
   }

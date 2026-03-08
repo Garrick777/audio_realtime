@@ -5,6 +5,7 @@ export const CALL_STATES = Object.freeze({
   USER_SPEAKING: "user_speaking",
   PROCESSING: "processing",
   AI_SPEAKING: "ai_speaking",
+  VIDEO_PROCESSING: "video_processing",
   ERROR: "error",
 });
 
@@ -19,6 +20,7 @@ const STATE_TRANSITIONS = Object.freeze({
     CALL_STATES.CONNECTING,
     CALL_STATES.USER_SPEAKING,
     CALL_STATES.AI_SPEAKING,
+    CALL_STATES.VIDEO_PROCESSING,
     CALL_STATES.IDLE,
     CALL_STATES.ERROR,
   ]),

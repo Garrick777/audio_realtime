@@ -31,6 +31,7 @@ export class WebSocketManager {
   constructor(config = CONFIG) {
     this.config = config;
     this.ws = null;
+    this.geminiWs = null;
     this.status = STATUS.DISCONNECTED;
 
     this._manualClose = false;
@@ -43,6 +44,7 @@ export class WebSocketManager {
     this._audioTranscriptCallbacks = new Set();
     this._speechStartCallbacks = new Set();
     this._speechStopCallbacks = new Set();
+    this._visualAnalysisCallbacks = new Set();
   }
 
   connect() {
@@ -64,6 +66,11 @@ export class WebSocketManager {
   disconnect() {
     this._manualClose = true;
     this._clearReconnectTimer();
+
+    if (this.geminiWs && this.geminiWs.readyState === OPEN_STATE) {
+      this.geminiWs.close();
+      this.geminiWs = null;
+    }
 
     if (!this.ws) {
       this._setStatus(STATUS.DISCONNECTED);
@@ -110,8 +117,7 @@ export class WebSocketManager {
   }
 
   sendUserText(text) {
-    const userText = String(text ?? "").trim();
-    if (!userText) {
+    if (!text?.trim()) {
       return false;
     }
 
@@ -123,7 +129,7 @@ export class WebSocketManager {
         content: [
           {
             type: "input_text",
-            text: userText,
+            text: text.trim(),
           },
         ],
       },
@@ -167,9 +173,12 @@ export class WebSocketManager {
   }
 
   cancelResponse() {
-    return this.sendMessage({
+    console.log('[WebSocket] cancelResponse() called');
+    const result = this.sendMessage({
       type: "response.cancel",
     });
+    console.log('[WebSocket] cancelResponse() sent:', result);
+    return result;
   }
 
   updateSession(config = this.config.REALTIME_CONFIG || REALTIME_CONFIG) {
@@ -183,22 +192,10 @@ export class WebSocketManager {
       turn_detection: {
         type: turnDetection.type || "server_vad",
         threshold: turnDetection.threshold ?? 0.5,
-        prefix_padding_ms:
-          turnDetection.prefixPaddingMs ??
-          turnDetection.prefix_padding_ms ??
-          300,
-        silence_duration_ms:
-          turnDetection.silenceDurationMs ??
-          turnDetection.silence_duration_ms ??
-          500,
-        create_response:
-          turnDetection.createResponse ??
-          turnDetection.create_response ??
-          true,
-        interrupt_response:
-          turnDetection.interruptResponse ??
-          turnDetection.interrupt_response ??
-          true,
+        prefix_padding_ms: turnDetection.prefixPaddingMs ?? 300,
+        silence_duration_ms: turnDetection.silenceDurationMs ?? 500,
+        create_response: turnDetection.createResponse ?? true,
+        interrupt_response: turnDetection.interruptResponse ?? true,
       },
     };
 
@@ -209,57 +206,118 @@ export class WebSocketManager {
   }
 
   onMessage(callback) {
-    if (typeof callback !== "function") {
-      return () => {};
-    }
-
     this._messageCallbacks.add(callback);
     return () => this._messageCallbacks.delete(callback);
   }
 
   onStatusChange(callback) {
-    if (typeof callback !== "function") {
-      return () => {};
-    }
-
     this._statusCallbacks.add(callback);
     return () => this._statusCallbacks.delete(callback);
   }
 
   onAudioDelta(callback) {
-    if (typeof callback !== "function") {
-      return () => {};
-    }
-
     this._audioDeltaCallbacks.add(callback);
     return () => this._audioDeltaCallbacks.delete(callback);
   }
 
   onAudioTranscript(callback) {
-    if (typeof callback !== "function") {
-      return () => {};
-    }
-
     this._audioTranscriptCallbacks.add(callback);
     return () => this._audioTranscriptCallbacks.delete(callback);
   }
 
   onSpeechStart(callback) {
-    if (typeof callback !== "function") {
-      return () => {};
-    }
-
     this._speechStartCallbacks.add(callback);
     return () => this._speechStartCallbacks.delete(callback);
   }
 
   onSpeechStop(callback) {
-    if (typeof callback !== "function") {
-      return () => {};
-    }
-
     this._speechStopCallbacks.add(callback);
     return () => this._speechStopCallbacks.delete(callback);
+  }
+
+  onVisualAnalysis(callback) {
+    this._visualAnalysisCallbacks.add(callback);
+    return () => this._visualAnalysisCallbacks.delete(callback);
+  }
+
+  connectGemini() {
+    if (this.geminiWs && this.geminiWs.readyState === OPEN_STATE) {
+      return;
+    }
+
+    this.geminiWs = new WebSocket(this.config.GEMINI_WS_URL);
+    this.geminiWs.onopen = () => {
+      console.log("[Gemini WebSocket] Connected");
+    };
+    this.geminiWs.onmessage = (event) => {
+      try {
+        const data = JSON.parse(event.data);
+        if (data.type === "visual_analysis") {
+          this._emitVisualAnalysis(data.content);
+        }
+      } catch (e) {
+        console.error("[Gemini WebSocket] Failed to parse message:", e);
+      }
+    };
+    this.geminiWs.onerror = (event) => {
+      console.error("[Gemini WebSocket] Error:", event);
+    };
+    this.geminiWs.onclose = () => {
+      console.log("[Gemini WebSocket] Closed");
+      this.geminiWs = null;
+    };
+  }
+
+  sendVideoFrame(frameBlob) {
+    if (!this.geminiWs || this.geminiWs.readyState !== OPEN_STATE) {
+      return false;
+    }
+
+    const reader = new FileReader();
+    reader.onload = () => {
+      const base64 = reader.result.split(",")[1];
+      this.geminiWs.send(
+        JSON.stringify({
+          type: "video_frame",
+          frame: base64,
+          timestamp: Date.now(),
+        })
+      );
+    };
+    reader.readAsDataURL(frameBlob);
+    return true;
+  }
+
+  sendVideoBatch(frameBatch) {
+    if (!this.geminiWs || this.geminiWs.readyState !== OPEN_STATE) {
+      return false;
+    }
+
+    // 将所有帧转换为 base64
+    const promises = frameBatch.map((blob) => {
+      return new Promise((resolve) => {
+        const reader = new FileReader();
+        reader.onload = () => {
+          const base64 = reader.result.split(",")[1];
+          resolve(base64);
+        };
+        reader.readAsDataURL(blob);
+      });
+    });
+
+    Promise.all(promises).then((base64Frames) => {
+      this.geminiWs.send(
+        JSON.stringify({
+          type: "video_batch",
+          frames: base64Frames,
+          count: base64Frames.length,
+          timestamp: Date.now(),
+        })
+      );
+      console.log(`[WebSocket] Sent batch of ${base64Frames.length} frames`);
+    });
+
+    return true;
   }
 
   _handleOpen() {
@@ -373,6 +431,12 @@ export class WebSocketManager {
   _emitSpeechStop(raw) {
     for (const callback of this._speechStopCallbacks) {
       callback(raw);
+    }
+  }
+
+  _emitVisualAnalysis(content) {
+    for (const callback of this._visualAnalysisCallbacks) {
+      callback(content);
     }
   }
 

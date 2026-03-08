@@ -1,0 +1,146 @@
+.video-mode {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 20px;
+}
+
+.video-preview-container {
+  position: relative;
+  width: 100%;
+  max-width: 640px;
+  margin: 0 auto;
+  background: #000;
+  border-radius: 8px;
+  overflow: hidden;
+}
+
+#videoPreview {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.toggle-preview-btn {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  padding: 8px 16px;
+  background: rgba(0, 0, 0, 0.7);
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: background 0.2s;
+}
+
+.toggle-preview-btn:hover {
+  background: rgba(0, 0, 0, 0.9);
+}
+
+.visual-analysis-panel {
+  background: #f5f5f5;
+  border-radius: 8px;
+  padding: 16px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+
+.visual-analysis-panel h3 {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: #333;
+}
+
+.visual-analysis-content {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.visual-item {
+  background: white;
+  padding: 12px;
+  border-radius: 6px;
+  border-left: 3px solid #4CAF50;
+}
+
+.visual-item .timestamp {
+  display: block;
+  font-size: 12px;
+  color: #666;
+  margin-bottom: 6px;
+}
+
+.visual-item p {
+  margin: 0;
+  font-size: 14px;
+  color: #333;
+  line-height: 1.5;
+}
+
+.video-mode .voice-status {
+  text-align: center;
+  font-size: 18px;
+  color: #333;
+  margin: 10px 0;
+}
+
+.video-mode .volume-indicator-container {
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+.video-mode .call-button {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin: 20px auto;
+  padding: 16px 32px;
+  font-size: 18px;
+  background: #4CAF50;
+  color: white;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  transition: all 0.3s;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.video-mode .call-button:hover {
+  background: #45a049;
+  transform: translateY(-2px);
+  box-shadow: 0 6px 8px rgba(0, 0, 0, 0.15);
+}
+
+.video-mode .call-button[aria-pressed="true"] {
+  background: #f44336;
+}
+
+.video-mode .call-button[aria-pressed="true"]:hover {
+  background: #da190b;
+}
+
+.video-mode .call-icon {
+  font-size: 24px;
+}
+
+.video-mode .voice-hint {
+  text-align: center;
+  font-size: 14px;
+  color: #666;
+  margin-top: 10px;
+}
+
+@media (max-width: 768px) {
+  .video-preview-container {
+    max-width: 100%;
+  }
+
+  .visual-analysis-panel {
+    max-height: 200px;
+  }
+}

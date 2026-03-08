@@ -36,7 +36,11 @@ export class EventBus {
     }
 
     for (const handler of handlers) {
-      handler(payload);
+      try {
+        handler(payload);
+      } catch (error) {
+        console.error(`EventBus handler error for "${eventName}":`, error);
+      }
     }
   }
 
